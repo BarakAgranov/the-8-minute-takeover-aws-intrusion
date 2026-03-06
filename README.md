@@ -69,7 +69,7 @@ An attacker scanning for AI-named S3 buckets discovers the public bucket, downlo
 ## Quick Start
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/BarakAgranov/the-8-minute-takeover-aws-intrusion.git
 cd scenario-8min-takeover
 
 # One-command setup (checks prereqs, deploys infra, installs deps)
