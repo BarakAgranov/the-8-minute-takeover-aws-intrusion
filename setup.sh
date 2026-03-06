@@ -84,11 +84,8 @@ if echo "${BPA_OUTPUT}" | grep -q '"true"' 2>/dev/null || echo "${BPA_OUTPUT}" |
     echo -e "${YELLOW}  S3 Block Public Access is ENABLED (one or more settings are true).${NC}"
     echo -e "${YELLOW}  This scenario requires a public S3 bucket.${NC}"
     echo ""
-    echo -e "  To disable BPA for this lab, run:"
-    echo -e "  ${CYAN}aws s3control put-public-access-block \\${NC}"
-    echo -e "  ${CYAN}  --account-id ${ACCOUNT_ID} \\${NC}"
-    echo -e "  ${CYAN}  --public-access-block-configuration \\${NC}"
-    echo -e "  ${CYAN}    BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false${NC}"
+    echo -e "  To disable BPA for this lab, copy and run this command:\n"
+    echo "  aws s3control put-public-access-block --account-id ${ACCOUNT_ID} --public-access-block-configuration BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"
     echo ""
     read -p "  Have you disabled BPA, or do you want to continue anyway? [y/N] " -n 1 -r
     echo
