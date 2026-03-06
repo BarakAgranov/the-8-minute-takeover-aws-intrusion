@@ -1,0 +1,29 @@
+# =============================================================================
+# terraform.tfvars.example
+# =============================================================================
+# Copy this file to terraform.tfvars and update the values:
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# Terraform automatically loads terraform.tfvars when running plan/apply.
+# =============================================================================
+
+# AWS region. Choose a region where you have Bedrock model access.
+# us-east-1 has the broadest Bedrock model availability.
+aws_region = "us-east-1"
+
+# Prefix for resource names. Use something unique to you.
+# Must be lowercase letters, numbers, and hyphens only.
+# This prefix appears in S3 bucket names (which must be globally unique).
+project_prefix = "acme-ai"
+
+# Name of the admin user the attacker will target.
+# Keep as "frick" to match the real-world attack, or change it.
+admin_user_name = "frick"
+
+# Name of the Lambda function to use as the escalation vector.
+# Keep as "EC2-init" to match the real-world attack, or change it.
+lambda_function_name = "EC2-init"
+
+# Enable CloudTrail logging to see the attack in audit logs.
+# Costs ~$2 per 100K events. Recommended for learning.
+enable_cloudtrail = true
