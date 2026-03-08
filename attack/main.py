@@ -52,7 +52,7 @@ BANNER = r"""
 [dim]AI-assisted attacker: stolen S3 credentials -> full admin in 8 minutes[/dim]
 """
 
-TERRAFORM_DIR = str(Path(__file__).parent.parent / "terraform")
+TERRAFORM_DIR = str(Path(__file__).resolve().parent.parent / "terraform")
 
 
 # =============================================================================
