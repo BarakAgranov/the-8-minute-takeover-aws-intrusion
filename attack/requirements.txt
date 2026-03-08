@@ -1,0 +1,9 @@
+# =============================================================================
+# Python Dependencies for "The 8-Minute Takeover" Attack Scripts
+# =============================================================================
+# Install: pip install -r requirements.txt
+# Versions pinned to latest stable as of March 2026.
+# =============================================================================
+
+boto3>=1.34.0
+rich>=13.0.0
