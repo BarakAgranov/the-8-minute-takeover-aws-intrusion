@@ -36,7 +36,7 @@ def generate_report(
         Path to the generated report file.
     """
     if output_dir is None:
-        output_dir = str(Path(__file__).parent.parent / "reports")
+        output_dir = str(Path(__file__).resolve().parent.parent / "reports")
     os.makedirs(output_dir, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")

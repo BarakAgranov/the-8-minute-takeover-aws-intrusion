@@ -195,7 +195,7 @@ def inject_payload(
     lam = session.client("lambda")
 
     # Locate the payload file
-    payload_path = Path(__file__).parent / "payloads" / "ec2_init.py"
+    payload_path = Path(__file__).resolve().parent / "payloads" / "ec2_init.py"
     if not payload_path.exists():
         print_error(f"Payload file not found: {payload_path}")
         return {}

@@ -46,7 +46,7 @@ def init_logging(log_dir: Optional[str] = None) -> str:
     global _log_file, _log_start_time
 
     if log_dir is None:
-        log_dir = str(Path(__file__).parent.parent / "logs")
+        log_dir = str(Path(__file__).resolve().parent.parent / "logs")
 
     os.makedirs(log_dir, exist_ok=True)
 

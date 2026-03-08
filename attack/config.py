@@ -44,7 +44,7 @@ class AttackConfig:
         """
         if terraform_dir is None:
             terraform_dir = str(
-                Path(__file__).parent.parent / "terraform"
+                Path(__file__).resolve().parent.parent / "terraform"
             )
         self.terraform_dir = terraform_dir
         self._tf_outputs: Dict[str, Any] = {}

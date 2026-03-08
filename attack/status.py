@@ -18,7 +18,7 @@ import botocore
 
 from utils import console, format_table, print_error, print_info, print_success, print_warning
 
-TERRAFORM_DIR = str(Path(__file__).parent.parent / "terraform")
+TERRAFORM_DIR = str(Path(__file__).resolve().parent.parent / "terraform")
 
 
 def _check_mark(ok: bool) -> str:
