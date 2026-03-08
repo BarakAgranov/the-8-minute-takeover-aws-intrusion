@@ -140,10 +140,14 @@ def increase_timeout(
     session = config.attacker_session
     lam = session.client("lambda")
 
-    response = lam.update_function_configuration(
-        FunctionName=config.lambda_function_name,
-        Timeout=new_timeout,
-    )
+    try:
+        response = lam.update_function_configuration(
+            FunctionName=config.lambda_function_name,
+            Timeout=new_timeout,
+        )
+    except Exception as exc:
+        print_error(f"Failed to update Lambda timeout: {exc}")
+        return {}
 
     print_success(f"Timeout updated: 3s -> {new_timeout}s")
     print_info("Waiting for configuration update to complete...")
