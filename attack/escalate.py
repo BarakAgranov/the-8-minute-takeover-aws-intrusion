@@ -419,6 +419,19 @@ def run_phase(config: AttackConfig) -> Dict[str, Any]:
 
     results = {}
 
+    # If a previous run crashed mid-update, the Lambda may be stuck in
+    # "Pending" state. Wait for it to settle before attempting any changes.
+    try:
+        lam = config.attacker_session.client("lambda")
+        func_config = lam.get_function_configuration(
+            FunctionName=config.lambda_function_name
+        )
+        if func_config.get("LastUpdateStatus") == "InProgress":
+            print_warning("Lambda is in Pending state from a previous run. Waiting...")
+            wait_for_lambda_update(lam, config.lambda_function_name)
+    except Exception:
+        pass  # If this check fails, discover_lambda_target will catch it
+
     results["lambda_target"] = discover_lambda_target(config)
     if not results["lambda_target"]:
         print_error("Cannot proceed: Lambda target not found.")
