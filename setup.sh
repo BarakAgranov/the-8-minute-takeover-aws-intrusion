@@ -190,7 +190,7 @@ echo -e "\n${CYAN}[5/8] Installing Python dependencies...${NC}"
 
 pip install --quiet --upgrade pip 2>/dev/null || true
 
-if ! pip install -r "${ATTACK_DIR}/requirements.txt" 2>&1; then
+if ! pip install -r "${SCRIPT_DIR}/requirements.txt" 2>&1; then
     echo ""
     echo -e "${RED}ERROR: Failed to install Python dependencies${NC}"
     echo ""
