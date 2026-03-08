@@ -64,25 +64,16 @@ if aws iam get-user --user-name frick &>/dev/null; then
     FRICK_KEYS=$(aws iam list-access-keys --user-name frick --query 'AccessKeyMetadata[].AccessKeyId' --output text 2>/dev/null)
     KEY_COUNT=$(echo "${FRICK_KEYS}" | wc -w)
 
-    if [ "${KEY_COUNT}" -gt 1 ]; then
-        echo -e "    ${YELLOW}Found ${KEY_COUNT} access keys for frick (1 expected from Terraform)${NC}"
-        # Keep only the first key (Terraform-managed), delete the rest
-        FIRST=true
-        for KEY_ID in ${FRICK_KEYS}; do
-            if [ "${FIRST}" = true ]; then
-                FIRST=false
-                echo -e "    ${CYAN}Keeping: ${KEY_ID} (Terraform-managed)${NC}"
-                continue
-            fi
-            aws iam delete-access-key --user-name frick --access-key-id "${KEY_ID}" 2>/dev/null && \
-                echo -e "    ${GREEN}Deleted attacker key: ${KEY_ID}${NC}" || {
-                    echo -e "    ${RED}Failed to delete key: ${KEY_ID}${NC}"
-                    ERRORS=$((ERRORS + 1))
-                }
-        done
-    else
-        echo -e "    ${GREEN}Only ${KEY_COUNT} key(s) found for frick (no attacker keys to clean)${NC}"
-    fi
+# Delete ALL keys for frick. Terraform is about to delete the user
+    # anyway, and we can't reliably tell which key is Terraform's vs
+    # the attacker's (AWS doesn't guarantee listing order).
+    for KEY_ID in ${FRICK_KEYS}; do
+        aws iam delete-access-key --user-name frick --access-key-id "${KEY_ID}" 2>/dev/null && \
+            echo -e "    ${GREEN}Deleted key: ${KEY_ID}${NC}" || {
+                echo -e "    ${RED}Failed to delete key: ${KEY_ID}${NC}"
+                ERRORS=$((ERRORS + 1))
+            }
+    done
 else
     echo -e "    ${YELLOW}User frick does not exist (already destroyed or not yet created)${NC}"
 fi
@@ -91,11 +82,14 @@ fi
 # STEP 2: TERRAFORM DESTROY
 # =============================================================================
 
+TF_DESTROY_SUCCESS=false
+
 echo -e "\n${CYAN}[2/6] Running terraform destroy...${NC}"
 if [ -f "${TERRAFORM_DIR}/terraform.tfstate" ]; then
     cd "${TERRAFORM_DIR}"
     if terraform destroy -auto-approve -input=false; then
         echo -e "  ${GREEN}Terraform resources destroyed${NC}"
+        TF_DESTROY_SUCCESS=true
     else
         echo -e "  ${RED}terraform destroy failed (see errors above)${NC}"
         echo -e "  ${YELLOW}Some resources may still exist. Check the AWS Console.${NC}"
@@ -133,8 +127,13 @@ fi
 echo -e "\n${CYAN}[4/6] Cleaning up local artifacts...${NC}"
 
 rm -rf "${TERRAFORM_DIR}/.terraform" 2>/dev/null && echo -e "  ${GREEN}Removed .terraform/${NC}" || true
-rm -f "${TERRAFORM_DIR}/terraform.tfstate" 2>/dev/null && echo -e "  ${GREEN}Removed terraform.tfstate${NC}" || true
-rm -f "${TERRAFORM_DIR}/terraform.tfstate.backup" 2>/dev/null && echo -e "  ${GREEN}Removed terraform.tfstate.backup${NC}" || true
+# Only delete state files if terraform destroy succeeded
+if [ "${TF_DESTROY_SUCCESS}" = true ]; then
+    rm -f "${TERRAFORM_DIR}/terraform.tfstate" 2>/dev/null && echo -e "  ${GREEN}Removed terraform.tfstate${NC}" || true
+    rm -f "${TERRAFORM_DIR}/terraform.tfstate.backup" 2>/dev/null && echo -e "  ${GREEN}Removed terraform.tfstate.backup${NC}" || true
+else
+    echo -e "  ${YELLOW}Keeping terraform.tfstate (destroy had errors -- you may need to re-run)${NC}"
+fi
 rm -f "${TERRAFORM_DIR}/.terraform.lock.hcl" 2>/dev/null && echo -e "  ${GREEN}Removed .terraform.lock.hcl${NC}" || true
 rm -f "${TERRAFORM_DIR}/lambda/ec2_init.zip" 2>/dev/null && echo -e "  ${GREEN}Removed lambda zip${NC}" || true
 find "${SCRIPT_DIR}" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
