@@ -12,21 +12,17 @@ Modes:
 Flags:
   --log            Write structured log to logs/ directory
   --report         Generate Markdown report after attack completes
-  --skip-deploy    Skip Terraform deployment (infra already up)
   --skip-cleanup   Leave infrastructure running after attack
 """
 import argparse
 import json
-import os
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt, IntPrompt
+from rich.prompt import IntPrompt
 from rich import box
 
 from config import AttackConfig
@@ -35,10 +31,8 @@ from utils import (
     format_table,
     init_logging,
     close_logging,
-    log_event,
     print_error,
     print_info,
-    print_phase_banner,
     print_success,
     print_warning,
 )
@@ -76,38 +70,6 @@ def terraform_is_deployed() -> bool:
         return len(state.get("resources", [])) > 0
     except (json.JSONDecodeError, IOError):
         return False
-
-
-def run_terraform_deploy() -> bool:
-    """Run terraform init + apply, showing output live."""
-    print_info("Deploying infrastructure with Terraform...")
-
-    try:
-        subprocess.run(["terraform", "version"], capture_output=True, check=True)
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        print_error("Terraform not found. Install Terraform >= 1.10.0 first.")
-        return False
-
-    print_info("Running terraform init...")
-    result = subprocess.run(
-        ["terraform", "init", "-input=false"],
-        cwd=TERRAFORM_DIR,
-    )
-    if result.returncode != 0:
-        print_error("terraform init failed (see output above)")
-        return False
-
-    print_info("Running terraform apply (this takes 1-2 minutes)...")
-    result = subprocess.run(
-        ["terraform", "apply", "-auto-approve", "-input=false"],
-        cwd=TERRAFORM_DIR,
-    )
-    if result.returncode != 0:
-        print_error("terraform apply failed (see output above)")
-        return False
-
-    print_success("Infrastructure deployed successfully")
-    return True
 
 
 # =============================================================================
@@ -203,9 +165,7 @@ def run_all_phases(config: AttackConfig) -> dict:
         )
     )
 
-    all_results = {}
-    all_results["phase1"] = exploit.run_phase(config)
-    all_results["phase2"] = escalate.run_phase(config)
+    all_results = {"phase1": exploit.run_phase(config), "phase2": escalate.run_phase(config)}
 
     if config.admin_session is not None:
         all_results["phase3"] = exfiltrate.run_phase(config)
@@ -217,11 +177,11 @@ def run_all_phases(config: AttackConfig) -> dict:
     else:
         print_error("Skipping Phase 4: admin credentials not obtained")
 
-    print_attack_summary(config, all_results)
+    print_attack_summary(all_results)
     return all_results
 
 
-def print_attack_summary(config: AttackConfig, results: dict) -> None:
+def print_attack_summary(results: dict) -> None:
     """Print a summary table of the full attack."""
     console.print()
     console.print(
@@ -345,7 +305,6 @@ def main() -> None:
     parser.add_argument("--manual", action="store_true", help="Print manual execution commands")
     parser.add_argument("--log", action="store_true", help="Write structured log to logs/ directory")
     parser.add_argument("--report", action="store_true", help="Generate Markdown report after attack")
-    parser.add_argument("--skip-deploy", action="store_true", help="Skip Terraform deployment")
     parser.add_argument("--skip-cleanup", action="store_true", help="Leave infrastructure running")
 
     args = parser.parse_args()
@@ -383,26 +342,10 @@ def main() -> None:
         log_path = init_logging()
         print_success(f"Logging to: {log_path}")
 
-    # Deploy infrastructure if needed
-    if not args.skip_deploy:
-        if terraform_is_deployed():
-            print_success("Infrastructure already deployed (terraform.tfstate found)")
-        else:
-            tfvars = Path(TERRAFORM_DIR) / "terraform.tfvars"
-            if not tfvars.exists():
-                example = Path(TERRAFORM_DIR) / "terraform.tfvars.example"
-                if example.exists():
-                    print_warning("terraform.tfvars not found. Copying from example...")
-                    import shutil
-                    shutil.copy2(str(example), str(tfvars))
-                else:
-                    print_error("No terraform.tfvars or terraform.tfvars.example found.")
-                    sys.exit(1)
-            if not run_terraform_deploy():
-                print_error("Infrastructure deployment failed. Exiting.")
-                sys.exit(1)
-    else:
-        print_info("Skipping Terraform deployment (--skip-deploy)")
+    # Check infrastructure is deployed
+    if not terraform_is_deployed():
+        print_error("Infrastructure not deployed. Run ./setup.sh first.")
+        sys.exit(1)
 
     # Load configuration
     try:
