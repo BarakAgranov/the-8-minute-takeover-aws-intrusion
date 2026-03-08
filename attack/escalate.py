@@ -278,10 +278,14 @@ def invoke_and_harvest(
         "target_admin_user": config.admin_user_name,
     })
 
-    response = lam.invoke(
-        FunctionName=config.lambda_function_name,
-        Payload=event_payload.encode("utf-8"),
-    )
+    try:
+        response = lam.invoke(
+            FunctionName=config.lambda_function_name,
+            Payload=event_payload.encode("utf-8"),
+        )
+    except Exception as exc:
+        print_error(f"Failed to invoke Lambda function: {exc}")
+        return {}
 
     # Read and parse the Lambda response
     response_payload = json.loads(
