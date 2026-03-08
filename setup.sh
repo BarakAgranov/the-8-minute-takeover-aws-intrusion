@@ -116,8 +116,9 @@ if echo "${BPA_OUTPUT}" | grep -q 'true' 2>/dev/null; then
         fi
     else
         echo ""
-        echo -e "${YELLOW}  Continuing without disabling BPA.${NC}"
-        echo -e "${YELLOW}  The attack scripts will use Terraform outputs as a fallback.${NC}"
+        echo -e "${RED}  Cannot continue. Terraform needs BPA disabled to create the public bucket policy.${NC}"
+        echo -e "${YELLOW}  Re-run ./setup.sh and choose 'y' when prompted.${NC}"
+        exit 1
     fi
 else
     echo -e "  ${GREEN}BPA is already disabled. Public bucket will work.${NC}"
