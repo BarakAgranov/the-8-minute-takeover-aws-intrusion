@@ -173,7 +173,6 @@ Shows:
 
 ```bash
 --skip-deploy    # Skip Terraform if infrastructure is already up
---skip-cleanup   # Don't show the cleanup reminder at the end
 ```
 
 ---
