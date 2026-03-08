@@ -64,7 +64,12 @@ def discover_lambda_target(
     iam = session.client("iam")
 
     # Get full details about the target function
-    func = lam.get_function(FunctionName=config.lambda_function_name)
+    try:
+        func = lam.get_function(FunctionName=config.lambda_function_name)
+    except Exception as exc:
+        print_error(f"Cannot find Lambda function '{config.lambda_function_name}': {exc}")
+        return {}
+
     func_config = func["Configuration"]
     role_arn = func_config["Role"]
     role_name = role_arn.split("/")[-1]
