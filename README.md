@@ -314,7 +314,7 @@ scenario-8min-takeover/
 - [docs/concepts.md](docs/concepts.md) -- Every cloud concept in this scenario explained from scratch
 - [docs/attack_narrative.md](docs/attack_narrative.md) -- The full attack story told as an incident report
 - [docs/real_world_examples.md](docs/real_world_examples.md) -- 6 real breaches using similar techniques
-- [Sysdig: The 8-Minute Takeover](https://sysdig.com/blog/8-minute-takeover/) -- The original research this lab is based on
+- [Sysdig: The 8-Minute Takeover](https://www.sysdig.com/blog/ai-assisted-cloud-intrusion-achieves-admin-access-in-8-minutes/) -- The original research this lab is based on
 - [MITRE ATT&CK Cloud Matrix](https://attack.mitre.org/matrices/enterprise/cloud/)
 - [Rhino Security: AWS IAM Privilege Escalation](https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/)
 - [AWS IAM Best Practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)
