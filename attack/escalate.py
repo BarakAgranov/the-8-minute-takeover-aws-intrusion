@@ -214,10 +214,14 @@ def inject_payload(
     )
 
     # Upload the malicious code
-    response = lam.update_function_code(
-        FunctionName=config.lambda_function_name,
-        ZipFile=zip_buffer.read(),
-    )
+    try:
+        response = lam.update_function_code(
+            FunctionName=config.lambda_function_name,
+            ZipFile=zip_buffer.read(),
+        )
+    except Exception as exc:
+        print_error(f"Failed to upload Lambda code: {exc}")
+        return {}
 
     print_success(
         f"Code injected! New SHA256: "
