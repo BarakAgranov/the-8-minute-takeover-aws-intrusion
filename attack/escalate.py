@@ -16,10 +16,10 @@ MITRE ATT&CK Techniques:
 """
 import io
 import json
-import os
+import time
 import zipfile
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import boto3
 import botocore
@@ -373,6 +373,8 @@ def verify_admin_access(config: AttackConfig) -> Dict[str, str]:
     print_step(5, "Verifying admin access")
     admin = config.require_admin_session()
     sts = admin.client("sts")
+    print_info("Waiting for new access key to propagate across AWS...")
+    time.sleep(10)
     identity = sts.get_caller_identity()
 
     result = {
