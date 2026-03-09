@@ -357,6 +357,12 @@ def main() -> None:
         log_path = init_logging()
         print_success(f"Logging to: {log_path}")
 
+    # Clear progress from previous runs
+    import os
+    progress_file = str(Path(__file__).resolve().parent.parent / "logs" / ".attack-progress.json")
+    if os.path.exists(progress_file):
+        os.remove(progress_file)
+
     # Check infrastructure is deployed
     if not terraform_is_deployed():
         print_error("Infrastructure not deployed. Run ./setup.sh first.")

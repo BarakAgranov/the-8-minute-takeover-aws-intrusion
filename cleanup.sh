@@ -126,6 +126,7 @@ fi
 
 echo -e "\n${CYAN}[4/6] Cleaning up local artifacts...${NC}"
 
+rm -f "${SCRIPT_DIR}/logs/.attack-progress.json" 2>/dev/null || true
 rm -rf "${TERRAFORM_DIR}/.terraform" 2>/dev/null && echo -e "  ${GREEN}Removed .terraform/${NC}" || true
 # Only delete state files if terraform destroy succeeded
 if [ "${TF_DESTROY_SUCCESS}" = true ]; then
