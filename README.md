@@ -101,7 +101,7 @@ sudo apt install python3.X-venv    # Replace X with your minor version (e.g., py
 ```bash
 # Clone the repo
 git clone https://github.com/BarakAgranov/the-8-minute-takeover-aws-intrusion.git
-cd scenario-8min-takeover
+cd the-8-minute-takeover-aws-intrusion
 
 # One-command setup (checks prereqs, configures env, deploys infrastructure)
 ./setup.sh

@@ -454,4 +454,7 @@ def run_phase(config: AttackConfig) -> Dict[str, Any]:
 
     results["admin_verification"] = verify_admin_access(config)
 
+    from utils import mark_phase_complete
+    mark_phase_complete(2)
+
     return results

@@ -142,6 +142,21 @@ def run_interactive(config: AttackConfig) -> dict:
             print_error(f"Unexpected error: {exc}")
             console.print("[dim]  Returning to menu...[/dim]")
 
+            # Check if all phases are now complete
+            from utils import get_completed_phases
+            completed = get_completed_phases()
+            if all(completed.get(f"phase{i}") for i in range(1, 5)):
+                console.print()
+                console.print(
+                    Panel(
+                        "[bold bright_green]ALL PHASES COMPLETE[/bold bright_green]",
+                        border_style="bright_green",
+                        box=box.DOUBLE,
+                    )
+                )
+                print_warning("Run ./cleanup.sh when done, or select 0 to exit.")
+
+
     return all_results
 
 

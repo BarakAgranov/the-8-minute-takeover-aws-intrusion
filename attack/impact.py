@@ -368,4 +368,8 @@ def run_phase(config: AttackConfig) -> Dict[str, Any]:
     results["bedrock_models"] = enumerate_bedrock_models(config)
     results["gpu_recon"] = gpu_recon_dry_run(config)
     results["backdoor"] = create_backdoor_user(config)
+
+    from utils import mark_phase_complete
+    mark_phase_complete(4)
+
     return results

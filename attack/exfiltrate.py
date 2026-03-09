@@ -216,4 +216,8 @@ def run_phase(config: AttackConfig) -> Dict[str, Any]:
     results["secrets"] = harvest_secrets_manager(config)
     results["parameters"] = harvest_ssm_parameters(config)
     display_harvested_secrets(results["secrets"], results["parameters"])
+
+    from utils import mark_phase_complete
+    mark_phase_complete(3)
+
     return results

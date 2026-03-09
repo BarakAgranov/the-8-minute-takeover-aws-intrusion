@@ -32,6 +32,32 @@ console = Console()
 _log_file = None
 _log_start_time = None
 
+_PROGRESS_FILE = str(Path(__file__).resolve().parent.parent / "logs" / ".attack-progress.json")
+
+def mark_phase_complete(phase: int) -> None:
+    """Record that a phase has been completed."""
+    progress = {}
+    if os.path.exists(_PROGRESS_FILE):
+        try:
+            with open(_PROGRESS_FILE) as f:
+                progress = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass
+    progress[f"phase{phase}"] = True
+    os.makedirs(os.path.dirname(_PROGRESS_FILE), exist_ok=True)
+    with open(_PROGRESS_FILE, "w") as f:
+        json.dump(progress, f)
+
+def get_completed_phases() -> dict:
+    """Read which phases have been completed."""
+    import json, os
+    if os.path.exists(_PROGRESS_FILE):
+        try:
+            with open(_PROGRESS_FILE) as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass
+    return {}
 
 def init_logging(log_dir: Optional[str] = None) -> str:
     """

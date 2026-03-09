@@ -127,6 +127,14 @@ def check_attack_progress(account_id: str) -> Dict[str, Any]:
     except Exception:
         pass
 
+    # Merge with local progress tracking (catches phases that leave no AWS artifacts)
+    from utils import get_completed_phases
+    local_progress = get_completed_phases()
+    progress["phase1_recon"] = local_progress.get("phase1", False)
+    progress["phase2_escalation"] = progress["phase2_escalation"] or local_progress.get("phase2", False)
+    progress["phase3_exfiltration"] = local_progress.get("phase3", False)
+    progress["phase4_persistence"] = progress["phase4_persistence"] or local_progress.get("phase4", False)
+
     return progress
 
 
